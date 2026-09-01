@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+$(document).ready(function () {
     const tableElement = $('#tabla_roles');
 
     // Inicializar DataTable con AJAX
@@ -18,6 +18,18 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? '<span class="badge badge-success">Activo</span>' 
                         : '<span class="badge badge-danger">Inactivo</span>';
                 }
+            },
+            {
+                // Columna de Acciones (Botón Editar)
+                data: null,
+                orderable: false,
+                render: function (data, type, row) {
+                    return `
+                        <button type="button" class="btn btn-warning btn-sm btn-editar" data-id="${row.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    `;
+                }
             }
         ],
         language: {
@@ -25,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Evento para guardar nuevo rol
+    // Evento para guardar o actualizar rol
     const formAgregarRol = document.getElementById('form_agregar_rol');
     if (formAgregarRol) {
         formAgregarRol.addEventListener('submit', function (e) {
@@ -55,4 +67,28 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => console.error('Error:', error));
         });
     }
+
+    // Evento al hacer clic en el botón Editar
+    $('#tabla_roles tbody').on('click', '.btn-editar', function () {
+        const rowData = tablaRoles.row($(this).closest('tr')).data();
+
+        // Llenar el modal con los datos seleccionados
+        $('#rol_id').val(rowData.id);
+        $('#nombre_rol').val(rowData.nombre_rol);
+        $('#descripcion').val(rowData.descripcion);
+        $('#activo').prop('checked', rowData.activo);
+
+        // Cambiar título del modal
+        $('#modalRolLabel').text('Editar Rol');
+        
+        // Abrir modal
+        $('#modal_agregar_rol').modal('show');
+    });
+
+    // Limpiar modal al cerrarlo
+    $('#modal_agregar_rol').on('hidden.bs.modal', function () {
+        $('#form_agregar_rol')[0].reset();
+        $('#rol_id').val('');
+        $('#modalRolLabel').text('Nuevo Rol');
+    });
 });

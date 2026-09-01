@@ -41,24 +41,45 @@ class RolController extends AbstractController
     }
 
     #[Route('/rol/guardar', name: 'app_rol_guardar', methods: ['POST'])]
-    public function guardar(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $nombreRol = $request->request->get('nombre_rol');
-        $descripcion = $request->request->get('descripcion');
-        $activo = $request->request->get('activo') === 'on';
+    public function guardar(
+        Request $request, 
+        EntityManagerInterface $entityManager, 
+        RolRepository $rolRepository
+    ): JsonResponse {
+        try {
+            $id = $request->request->get('id');
+            $nombreRol = $request->request->get('nombre_rol');
+            $descripcion = $request->request->get('descripcion');
+            $activo = $request->request->get('activo') === 'on' || $request->request->get('activo') === '1';
 
-        if (empty($nombreRol)) {
-            return $this->json(['success' => false, 'message' => 'El nombre del rol es obligatorio.']);
+            if (empty($nombreRol)) {
+                return $this->json(['success' => false, 'message' => 'El nombre del rol es obligatorio.']);
+            }
+
+            // Si viene ID actualizamos, de lo contrario creamos uno nuevo
+            if (!empty($id)) {
+                $rol = $rolRepository->find($id);
+                if (!$rol) {
+                    return $this->json(['success' => false, 'message' => 'Rol no encontrado.']);
+                }
+            } else {
+                $rol = new Rol();
+            }
+
+            $rol->setNombreRol($nombreRol);
+            $rol->setDescripcion($descripcion);
+            $rol->setActivo($activo);
+
+            $entityManager->persist($rol);
+            $entityManager->flush();
+
+            return $this->json(['success' => true, 'message' => 'Rol guardado correctamente.']);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Error en la base de datos: ' . $e->getMessage()
+            ], 500);
         }
-
-        $rol = new Rol();
-        $rol->setNombreRol($nombreRol);
-        $rol->setDescripcion($descripcion);
-        $rol->setActivo($activo);
-
-        $entityManager->persist($rol);
-        $entityManager->flush();
-
-        return $this->json(['success' => true, 'message' => 'Rol guardado correctamente.']);
     }
 }

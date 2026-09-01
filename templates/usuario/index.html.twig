@@ -29,6 +29,7 @@
               <th>Correo Electrónico</th>
               <th>Nombre Usuario</th>
               <th>Activo</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -50,6 +51,8 @@
         </button>
       </div>
       <form id="form_agregar_usuario">
+        <!-- Campo oculto para almacenar el ID en caso de edición -->
+        <input type="hidden" id="usuario_id" name="id" value="">
         <div class="modal-body">
           <div class="form-group">
             <label for="rol_id">Rol <span class="text-danger">*</span></label>
@@ -93,5 +96,5 @@
 
 {% block javascripts %}
   {{ parent() }}
-  <script src="{{ asset('js/Usuario.js') }}?v=1.0.2"></script>
+  <script src="{{ asset('js/Usuario.js') }}?v=1.0.3"></script>
 {% endblock %}

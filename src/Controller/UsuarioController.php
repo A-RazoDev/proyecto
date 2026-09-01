@@ -45,9 +45,10 @@ class UsuarioController extends AbstractController
     }
 
     #[Route('/usuario/guardar', name: 'app_usuario_guardar', methods: ['POST'])]
-    public function guardar(Request $request, EntityManagerInterface $em, RolRepository $rolRepository): JsonResponse 
+    public function guardar(Request $request, EntityManagerInterface $em, RolRepository $rolRepository, UsuarioRepository $usuarioRepository): JsonResponse 
     {   
     try {
+        $id = $request->request->get('id');
         $rolId = $request->request->get('rol_id');
         $nombreCompleto = $request->request->get('nombre_completo');
         $correo = $request->request->get('correo_electronico');
@@ -55,21 +56,26 @@ class UsuarioController extends AbstractController
         $clave = $request->request->get('clave_acceso');
         $activo = $request->request->get('activo') === 'on' || $request->request->get('activo') === '1';
 
-        // Validar campos obligatorios
-        if (empty($nombreCompleto) || empty($correo) || empty($username) || empty($clave)) {
-            return $this->json(['success' => false, 'message' => 'Llene todos los campos obligatorios.']);
+        // Si existe ID editamos, si no creamos nueva entidad
+        if (!empty($id)) {
+            $usuario = $usuarioRepository->find($id);
+            if (!$usuario) {
+                return $this->json(['success' => false, 'message' => 'Usuario no encontrado.']);
+            }
+        } else {
+            $usuario = new Usuario();
         }
 
-        $usuario = new Usuario();
         $usuario->setNombreCompleto($nombreCompleto);
         $usuario->setCorreoElectronico($correo);
         $usuario->setNombreUsuario($username);
-        
-        // Encriptación de contraseña
-        $usuario->setClaveAcceso(password_hash($clave, PASSWORD_BCRYPT));
         $usuario->setActivo($activo);
 
-        // Asignar el Rol si fue seleccionado
+        // Si viene contraseña nueva, la encriptamos
+        if (!empty($clave)) {
+            $usuario->setClaveAcceso(password_hash($clave, PASSWORD_BCRYPT));
+        }
+
         if (!empty($rolId)) {
             $rol = $rolRepository->find($rolId);
             if ($rol) {
@@ -80,7 +86,7 @@ class UsuarioController extends AbstractController
         $em->persist($usuario);
         $em->flush();
 
-        return $this->json(['success' => true, 'message' => 'Usuario registrado correctamente.']);
+        return $this->json(['success' => true, 'message' => 'Usuario guardado correctamente.']);
 
     } catch (\Exception $e) {
         return $this->json([

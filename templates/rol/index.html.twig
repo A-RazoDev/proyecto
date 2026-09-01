@@ -27,6 +27,7 @@
               <th>Nombre del Rol</th>
               <th>Descripción</th>
               <th>Activo</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -48,6 +49,8 @@
         </button>
       </div>
       <form id="form_agregar_rol">
+        <!-- Campo Oculto para ID -->
+        <input type="hidden" id="rol_id" name="id" value="">
         <div class="modal-body">
           <div class="form-group">
             <label for="nombre_rol">Nombre del Rol <span class="text-danger">*</span></label>
